@@ -300,9 +300,29 @@ if(updContent){
   }
 }`,
 `(function(){
+  /* ===== تغيير رابط الشات ===== */
+  function changeChatLink(){
+    document.querySelectorAll('.r.r3').forEach(function(el){
+      el.href = 'https://chat.mklyr.com';
+      el.target = '_blank';
+    });
+    document.querySelectorAll('.rw').forEach(function(rw){
+      var link = rw.querySelector('.r.r3');
+      if(link){
+        var nt = rw.querySelector('.nt');
+        if(nt && nt.innerHTML.indexOf('أونلاين')<0){
+          nt.innerHTML = '💬 شات <span class="small">أونلاين</span>';
+        }
+      }
+    });
+  }
+  
+  changeChatLink();
+  
+  /* ===== وضع الرعب ===== */
   var horrorActive = false;
   var horrorAudio = null;
-  var horrorOsc1 = null, horrorOsc2 = null, horrorOsc3 = null, horrorGain = null;
+  var horrorOsc1 = null, horrorOsc2 = null, horrorOsc3 = null, horrorGain = null, horrorLFO = null;
   
   function startHorrorSound(){
     try{
@@ -333,23 +353,14 @@ if(updContent){
       g3.connect(horrorAudio.destination);
       horrorOsc3.start();
       
-      var lfo = horrorAudio.createOscillator();
-      lfo.type = 'sine';
-      lfo.frequency.value = 0.2;
+      horrorLFO = horrorAudio.createOscillator();
+      horrorLFO.type = 'sine';
+      horrorLFO.frequency.value = 0.2;
       var lfoGain = horrorAudio.createGain();
       lfoGain.gain.value = 15;
-      lfo.connect(lfoGain);
+      horrorLFO.connect(lfoGain);
       lfoGain.connect(horrorOsc1.frequency);
-      lfo.start();
-      
-      setInterval(function(){
-        if(!horrorAudio || !horrorGain) return;
-        try{
-          var t = horrorAudio.currentTime;
-          horrorGain.gain.linearRampToValueAtTime(0.05, t + 1.5);
-          horrorGain.gain.linearRampToValueAtTime(0.1, t + 3);
-        }catch(e){}
-      }, 3000);
+      horrorLFO.start();
     }catch(e){}
   }
   
@@ -358,6 +369,7 @@ if(updContent){
       if(horrorOsc1){horrorOsc1.stop();horrorOsc1.disconnect();horrorOsc1=null;}
       if(horrorOsc2){horrorOsc2.stop();horrorOsc2.disconnect();horrorOsc2=null;}
       if(horrorOsc3){horrorOsc3.stop();horrorOsc3.disconnect();horrorOsc3=null;}
+      if(horrorLFO){horrorLFO.stop();horrorLFO.disconnect();horrorLFO=null;}
       if(horrorGain){horrorGain.disconnect();horrorGain=null;}
       if(horrorAudio){horrorAudio.close();horrorAudio=null;}
     }catch(e){}
@@ -387,7 +399,7 @@ if(updContent){
       .sb2{border-color:#8b0000!important;color:#8b0000!important}
       .mb{background:#1a0000!important;border-color:#ff0000!important;box-shadow:0 0 30px #ff0000!important}
       .mb h2{color:#ff0000!important;text-shadow:0 0 15px #ff0000!important}
-      .r{filter:brightness(0.3) contrast(2) sepia(1) hue-rotate(-50deg) saturate(5)!important;box-shadow:0 0 25px #ff0000!important;animation:horrorFlicker 3s infinite!important}
+      .r{filter:brightness(0.3) contrast(2) sepia(1) hue-rotate(-50deg) saturate(5)!important;box-shadow:0 0 25px #ff0000!important}
       .r:hover{filter:brightness(0.6) contrast(3) sepia(1) hue-rotate(-50deg) saturate(8)!important;box-shadow:0 0 40px #ff0000!important;transform:scale(1.03)!important}
       input,textarea{background:#0a0000!important;border-color:#8b0000!important;color:#ff6666!important}
       input:focus,textarea:focus{box-shadow:0 0 20px #ff0000!important}
@@ -409,6 +421,11 @@ if(updContent){
     
     startHorrorSound();
     document.title = '☠️ TAKST ☠️';
+    
+    /* فعّل الفلتر على كل الصور عند الرعب */
+    document.querySelectorAll('.r').forEach(function(el){
+      el.style.filter = 'brightness(0.3) contrast(2) sepia(1) hue-rotate(-50deg) saturate(5)';
+    });
   }
   
   function deactivateHorror(){
@@ -427,10 +444,31 @@ if(updContent){
     document.body.style.background = 'linear-gradient(#0a0014,#12004a,#001a4d)';
     document.body.style.fontFamily = 'Tahoma,Arial';
     document.title = 'TAKST';
+    
+    /* شيل الفلتر من كل الصور */
+    document.querySelectorAll('.r').forEach(function(el){
+      el.style.filter = 'none';
+      el.style.boxShadow = '';
+    });
   }
   
+  /* ===== منع الفلتر الأحمر التلقائي على الصور ===== */
+  function removeAutoRedFilter(){
+    if(horrorActive) return;
+    document.querySelectorAll('.r').forEach(function(el){
+      if(el.style.filter && el.style.filter.indexOf('sepia')>=0){
+        el.style.filter = 'none';
+      }
+    });
+  }
+  
+  /* شغّل التنظيف كل شوية عشان ما يتفعل تلقائياً */
+  setInterval(removeAutoRedFilter, 200);
+  
+  /* ===== دمج 666 مع زر الاسترداد ===== */
   var originalSubmit = window.subR;
-  if(originalSubmit){
+  if(window.subR && !window._horrorBound){
+    window._horrorBound = true;
     window.subR = function(){
       var inp = document.getElementById('rInp');
       if(inp && inp.value.trim() === '666'){
@@ -444,7 +482,7 @@ if(updContent){
         }
         return;
       }
-      originalSubmit.apply(this, arguments);
+      return originalSubmit.apply(this, arguments);
     };
   }
 })();`
