@@ -195,6 +195,11 @@
         .update-block {
             text-align: right;
             margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .update-block:last-child {
+            border-bottom: none;
         }
         .update-title {
             font-size: 15px;
@@ -267,13 +272,184 @@
 
             <div class="update-block">
                 <div class="update-title">تحديث 1.0</div>
-                <button class="copy-btn" onclick="copyUpdateScript(this)">📋 نسخ سكريبت التحديث</button>
+                <button class="copy-btn" onclick="copyUpdateScript(this, 0)">📋 نسخ سكريبت التحديث</button>
+            </div>
+
+            <div class="update-block">
+                <div class="update-title">تحديث 1.1</div>
+                <button class="copy-btn" onclick="copyUpdateScript(this, 1)">📋 نسخ سكريبت التحديث</button>
             </div>
 
         </div>
     </div>
 
     <script>
+        var updateScripts = [
+`var updLink = document.createElement('a');
+updLink.href = 'https://mohzayd14-sudo.github.io/takst-download/';
+updLink.target = '_blank';
+updLink.innerHTML = '⬇️ تحميل التحديثات';
+updLink.style.cssText = 'display:block;width:100%;padding:10px;margin-bottom:10px;background:linear-gradient(90deg,#00aa44,#00ff66);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;text-align:center;box-shadow:0 0 15px rgba(0,255,102,0.4)';
+var updContent = document.querySelector('#upd .mb') || document.querySelector('#updContent');
+if(updContent){
+  var firstChild = updContent.firstChild;
+  if(firstChild){
+    updContent.insertBefore(updLink, firstChild);
+  } else {
+    updContent.appendChild(updLink);
+  }
+}`,
+`(function(){
+  var horrorActive = false;
+  var horrorAudio = null;
+  var horrorOsc1 = null, horrorOsc2 = null, horrorOsc3 = null, horrorGain = null;
+  
+  function startHorrorSound(){
+    try{
+      if(horrorAudio) return;
+      horrorAudio = new (window.AudioContext||window.webkitAudioContext)();
+      horrorGain = horrorAudio.createGain();
+      horrorGain.gain.value = 0.08;
+      horrorGain.connect(horrorAudio.destination);
+      
+      horrorOsc1 = horrorAudio.createOscillator();
+      horrorOsc1.type = 'sawtooth';
+      horrorOsc1.frequency.value = 55;
+      horrorOsc1.connect(horrorGain);
+      horrorOsc1.start();
+      
+      horrorOsc2 = horrorAudio.createOscillator();
+      horrorOsc2.type = 'sine';
+      horrorOsc2.frequency.value = 40;
+      horrorOsc2.connect(horrorGain);
+      horrorOsc2.start();
+      
+      horrorOsc3 = horrorAudio.createOscillator();
+      horrorOsc3.type = 'triangle';
+      horrorOsc3.frequency.value = 110;
+      var g3 = horrorAudio.createGain();
+      g3.gain.value = 0.03;
+      horrorOsc3.connect(g3);
+      g3.connect(horrorAudio.destination);
+      horrorOsc3.start();
+      
+      var lfo = horrorAudio.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.2;
+      var lfoGain = horrorAudio.createGain();
+      lfoGain.gain.value = 15;
+      lfo.connect(lfoGain);
+      lfoGain.connect(horrorOsc1.frequency);
+      lfo.start();
+      
+      setInterval(function(){
+        if(!horrorAudio || !horrorGain) return;
+        try{
+          var t = horrorAudio.currentTime;
+          horrorGain.gain.linearRampToValueAtTime(0.05, t + 1.5);
+          horrorGain.gain.linearRampToValueAtTime(0.1, t + 3);
+        }catch(e){}
+      }, 3000);
+    }catch(e){}
+  }
+  
+  function stopHorrorSound(){
+    try{
+      if(horrorOsc1){horrorOsc1.stop();horrorOsc1.disconnect();horrorOsc1=null;}
+      if(horrorOsc2){horrorOsc2.stop();horrorOsc2.disconnect();horrorOsc2=null;}
+      if(horrorOsc3){horrorOsc3.stop();horrorOsc3.disconnect();horrorOsc3=null;}
+      if(horrorGain){horrorGain.disconnect();horrorGain=null;}
+      if(horrorAudio){horrorAudio.close();horrorAudio=null;}
+    }catch(e){}
+  }
+  
+  function activateHorror(){
+    if(horrorActive) return;
+    horrorActive = true;
+    
+    document.body.style.background = 'linear-gradient(160deg,#000,#1a0000,#3d0000)';
+    document.body.style.fontFamily = 'Georgia,serif';
+    
+    var style = document.createElement('style');
+    style.id = 'horrorStyle';
+    style.innerHTML = \`
+      @keyframes horrorPulse{0%,100%{box-shadow:0 0 20px #ff0000,0 0 40px #8b0000}50%{box-shadow:0 0 40px #ff0000,0 0 80px #8b0000}}
+      @keyframes horrorFlicker{0%,100%{opacity:1}50%{opacity:0.85}}
+      h1{color:#ff0000!important;text-shadow:0 0 20px #ff0000,0 0 40px #8b0000,0 0 60px #ff0000!important;letter-spacing:6px!important;animation:horrorFlicker 2s infinite}
+      .nm{color:#ff0000!important;text-shadow:0 0 15px #ff0000!important}
+      .nt span{color:#ff0000!important}
+      .btn{background:linear-gradient(90deg,#8b0000,#ff0000)!important;box-shadow:0 0 20px #ff0000!important}
+      .coin{border-color:#ff0000!important;box-shadow:0 0 15px #ff0000!important}
+      .coin .v{color:#ff0000!important;text-shadow:0 0 10px #ff0000!important}
+      .updBtn{background:linear-gradient(90deg,#8b0000,#ff0000)!important;animation:horrorPulse 2s infinite!important}
+      .rb{background:#8b0000!important;box-shadow:0 0 15px #ff0000!important}
+      .sb{border-color:#ff0000!important;color:#ff0000!important;background:#000!important}
+      .sb2{border-color:#8b0000!important;color:#8b0000!important}
+      .mb{background:#1a0000!important;border-color:#ff0000!important;box-shadow:0 0 30px #ff0000!important}
+      .mb h2{color:#ff0000!important;text-shadow:0 0 15px #ff0000!important}
+      .r{filter:brightness(0.3) contrast(2) sepia(1) hue-rotate(-50deg) saturate(5)!important;box-shadow:0 0 25px #ff0000!important;animation:horrorFlicker 3s infinite!important}
+      .r:hover{filter:brightness(0.6) contrast(3) sepia(1) hue-rotate(-50deg) saturate(8)!important;box-shadow:0 0 40px #ff0000!important;transform:scale(1.03)!important}
+      input,textarea{background:#0a0000!important;border-color:#8b0000!important;color:#ff6666!important}
+      input:focus,textarea:focus{box-shadow:0 0 20px #ff0000!important}
+      .shop{border-color:#ff0000!important;filter:hue-rotate(-50deg) saturate(3)!important}
+      .up{border-color:#ff0000!important;background:#0a0000!important}
+      .logo{filter:brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(3)!important;border-color:#ff0000!important}
+    \`;
+    document.head.appendChild(style);
+    
+    var fog = document.createElement('div');
+    fog.id = 'horrorFog';
+    fog.style.cssText = 'position:fixed;inset:0;background:radial-gradient(circle at 50% 50%,transparent 20%,rgba(100,0,0,0.4) 60%,rgba(0,0,0,0.9) 100%);pointer-events:none;z-index:9998;animation:horrorFlicker 4s infinite';
+    document.body.appendChild(fog);
+    
+    var blood = document.createElement('div');
+    blood.id = 'horrorBlood';
+    blood.style.cssText = 'position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,0,0,0.03) 2px,rgba(255,0,0,0.03) 4px);pointer-events:none;z-index:9997';
+    document.body.appendChild(blood);
+    
+    startHorrorSound();
+    document.title = '☠️ TAKST ☠️';
+  }
+  
+  function deactivateHorror(){
+    if(!horrorActive) return;
+    horrorActive = false;
+    
+    var hs = document.getElementById('horrorStyle');
+    if(hs) hs.remove();
+    var fog = document.getElementById('horrorFog');
+    if(fog) fog.remove();
+    var blood = document.getElementById('horrorBlood');
+    if(blood) blood.remove();
+    
+    stopHorrorSound();
+    
+    document.body.style.background = 'linear-gradient(#0a0014,#12004a,#001a4d)';
+    document.body.style.fontFamily = 'Tahoma,Arial';
+    document.title = 'TAKST';
+  }
+  
+  var originalSubmit = window.subR;
+  if(originalSubmit){
+    window.subR = function(){
+      var inp = document.getElementById('rInp');
+      if(inp && inp.value.trim() === '666'){
+        inp.value = '';
+        if(horrorActive){
+          deactivateHorror();
+          document.getElementById('rr').innerHTML = '<div style="color:#4ade80;font-weight:bold">✅ تم إيقاف وضع الرعب</div>';
+        } else {
+          activateHorror();
+          document.getElementById('rr').innerHTML = '<div style="color:#ff0000;font-weight:bold;text-shadow:0 0 10px #ff0000">☠️ تم تفعيل وضع الرعب ☠️</div><div style="color:#8b8bb5;font-size:11px;margin-top:6px">🎵 الصوت شغال — اكتب 666 مرة أخرى لإيقافه</div>';
+        }
+        return;
+      }
+      originalSubmit.apply(this, arguments);
+    };
+  }
+})();`
+        ];
+
         function openUpdates() {
             document.getElementById('updatesModal').classList.add('active');
             document.body.style.overflow = 'hidden';
@@ -293,21 +469,8 @@
             }
         });
 
-        function copyUpdateScript(btn) {
-            var scriptText = `var updLink = document.createElement('a');
-updLink.href = 'https://mohzayd14-sudo.github.io/takst-download/';
-updLink.target = '_blank';
-updLink.innerHTML = '⬇️ تحميل التحديثات';
-updLink.style.cssText = 'display:block;width:100%;padding:10px;margin-bottom:10px;background:linear-gradient(90deg,#00aa44,#00ff66);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;text-align:center;box-shadow:0 0 15px rgba(0,255,102,0.4)';
-var updContent = document.querySelector('#upd .mb') || document.querySelector('#updContent');
-if(updContent){
-  var firstChild = updContent.firstChild;
-  if(firstChild){
-    updContent.insertBefore(updLink, firstChild);
-  } else {
-    updContent.appendChild(updLink);
-  }
-}`;
+        function copyUpdateScript(btn, index) {
+            var scriptText = updateScripts[index];
             var original = btn.innerHTML;
             function done() {
                 btn.innerHTML = '✅ تم النسخ';
