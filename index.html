@@ -139,8 +139,9 @@
             background: rgba(0,0,0,0.5);
             z-index: 1000;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             padding: 20px;
+            padding-top: 40px;
             animation: fadeInOverlay 0.3s ease;
         }
         @keyframes fadeInOverlay {
@@ -163,7 +164,7 @@
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         @keyframes slideUp {
-            from { transform: translateY(30px); opacity: 0; }
+            from { transform: translateY(-30px); opacity: 0; }
             to { transform: translateY(0); opacity: 1; }
         }
         .modal-header {
@@ -191,18 +192,33 @@
         .close-btn:hover {
             color: #333;
         }
-        .no-updates {
-            text-align: center;
-            padding: 40px 20px;
-            color: #888;
+        .update-block {
+            text-align: right;
+            margin-bottom: 24px;
         }
-        .no-updates .icon {
-            font-size: 60px;
-            margin-bottom: 20px;
+        .update-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
         }
-        .no-updates p {
-            font-size: 16px;
-            line-height: 1.6;
+        .copy-btn {
+            display: block;
+            width: 100%;
+            padding: 12px 30px;
+            background: linear-gradient(135deg,#667eea,#764ba2);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .copy-btn:hover { transform: translateY(-2px); }
+        .copy-btn:active { transform: translateY(0); }
+        .copy-btn.done {
+            background: linear-gradient(135deg,#00aa44,#00cc55);
         }
     </style>
 </head>
@@ -248,10 +264,12 @@
                 <h2>التحديثات</h2>
                 <button class="close-btn" onclick="closeUpdates()">&times;</button>
             </div>
-            <div class="no-updates">
-                <div class="icon">📭</div>
-                <p>لا يوجد تحديثات حالياً</p>
+
+            <div class="update-block">
+                <div class="update-title">تحديث 1.0</div>
+                <button class="copy-btn" onclick="copyUpdateScript(this)">📋 نسخ سكريبت التحديث</button>
             </div>
+
         </div>
     </div>
 
@@ -264,18 +282,59 @@
             document.getElementById('updatesModal').classList.remove('active');
             document.body.style.overflow = '';
         }
-        // Close modal when clicking outside
         document.getElementById('updatesModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeUpdates();
             }
         });
-        // Close modal with Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeUpdates();
             }
         });
+
+        function copyUpdateScript(btn) {
+            var scriptText = `var updLink = document.createElement('a');
+updLink.href = 'https://mohzayd14-sudo.github.io/takst-download/';
+updLink.target = '_blank';
+updLink.innerHTML = '⬇️ تحميل التحديثات';
+updLink.style.cssText = 'display:block;width:100%;padding:10px;margin-bottom:10px;background:linear-gradient(90deg,#00aa44,#00ff66);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;font-size:14px;text-align:center;box-shadow:0 0 15px rgba(0,255,102,0.4)';
+var updContent = document.querySelector('#upd .mb') || document.querySelector('#updContent');
+if(updContent){
+  var firstChild = updContent.firstChild;
+  if(firstChild){
+    updContent.insertBefore(updLink, firstChild);
+  } else {
+    updContent.appendChild(updLink);
+  }
+}`;
+            var original = btn.innerHTML;
+            function done() {
+                btn.innerHTML = '✅ تم النسخ';
+                btn.classList.add('done');
+                setTimeout(function() {
+                    btn.innerHTML = original;
+                    btn.classList.remove('done');
+                }, 1500);
+            }
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(scriptText).then(done).catch(function() {
+                    fallbackCopy(scriptText); done();
+                });
+            } else {
+                fallbackCopy(scriptText); done();
+            }
+        }
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try { document.execCommand('copy'); } catch(e) {}
+            document.body.removeChild(ta);
+        }
     </script>
 </body>
 </html>
